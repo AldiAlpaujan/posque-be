@@ -12,7 +12,6 @@ export class UserService {
   static async register(req: CreateUserRequest): Promise<CreateUserResponse> {
     const registerReq = Validation.validate(UserValidation.REGISTER, req);
     
-    // cek email apakah telah terdaftar
     const count = await prismaClient.user.count({
       where: {
         email: registerReq.email,
@@ -23,14 +22,22 @@ export class UserService {
       throw new ResponseError(400, "Email telah terdaftar", ErrorDetail404.BAD_MESSAGE);
     }
 
-    // encrypt password dengan sha256 jika email dapat didaftarkan
-
-
-    // masukan data ke database
+    registerReq.password = sha256(registerReq.password);
+    
+    const user = await prismaClient.user.create({
+      data: {
+        name: registerReq.name,
+        email: registerReq.email,
+        password: registerReq.password,
+        phone: registerReq.phone,
+        registration_date: new Date(),
+      }
+    })
+     
 
     return {
-      name: "",
-      email: "",
+      name: user.name,
+      email: user.email,
     }
   }
 
